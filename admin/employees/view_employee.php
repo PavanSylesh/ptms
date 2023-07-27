@@ -11,7 +11,7 @@ if(isset($_GET['id'])){
     }
     $query = $conn->query("SELECT DISTINCT p.id projectID, p.name  FROM project_list p
                             JOIN emp_proj_rel epr on p.id = epr.proj_id
-                            JOIN employee_list e ON epr.emp_code = e.code WHERE e.code = '{$code}'");
+                            JOIN employee_list e ON epr.emp_code = e.code WHERE e.code = '{$code}' ORDER BY p.id ASC");
     if($query->num_rows > 0){
         while ($row = $query->fetch_assoc()) {
             $projects[] = $row;

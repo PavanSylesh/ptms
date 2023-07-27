@@ -167,6 +167,26 @@ Class Users extends DBConnection {
 						$sql = "UPDATE employee_list set $column = '$value' where id = '{$id}' ";
 						$this->conn->query($sql);
 					}
+					$proj_id = $_POST['proj_id'];
+					$code = $_POST['code'];
+					$qry = "SELECT proj_id FROM emp_proj_rel where emp_code = '$code'";
+					$rows = $this->conn->query($qry);
+					$ids =[];
+					foreach($rows as $row){
+						$ids[] = $row['proj_id'];
+					}
+					foreach($proj_id as $val){
+						if(!in_array($val,$ids)){
+							$query = " INSERT INTO emp_proj_rel (emp_code,proj_id) VALUES ('$code','$val') ";
+							$this->conn->query($query);
+						}
+					}
+					foreach($ids as $val){
+						if(!in_array($val,$proj_id)){
+							$query = "DELETE FROM emp_proj_rel where proj_id = '$val'";
+							$this->conn->query($query);
+						}
+					}
 				}
 				
 			}
