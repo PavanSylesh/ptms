@@ -162,7 +162,13 @@ Class Users extends DBConnection {
 					}
 				}
 			}else{
-				// $sql = "UPDATE employee_list set {$data} where id = '{$id}' ";
+				foreach($_POST as $column => $value){
+					if($column != $column_name){
+						$sql = "UPDATE employee_list set $column = '$value' where id = '{$id}' ";
+						$this->conn->query($sql);
+					}
+				}
+				
 			}
 			$save = $this->conn->query($sql);
 			if($save){

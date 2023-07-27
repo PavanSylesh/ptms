@@ -26,7 +26,6 @@ $query = $conn->query("SELECT id projectID,name FROM project_list");
         foreach($tagged as $taggedName){
             $name[] = $taggedName['name'];
         }
-        var_dump($name);
 } else{
     $query = $conn->query("SELECT id projectID,name FROM project_list");
     if($query->num_rows > 0){
