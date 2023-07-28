@@ -9,6 +9,32 @@ if(isset($_GET['id'])){
             $$k = $v;
         }
     }
+    $query = $conn->query("SELECT id workID,name FROM work_type_list");
+    if($query->num_rows > 0){
+        while ($row = $query->fetch_assoc()) {
+            $work_list[] = $row;
+        }
+    }
+    $qry = $conn->query("SELECT DISTINCT wtl.id workID,wtl.name FROM work_type_list wtl 
+                            JOIN proj_worklist_rel pwr ON wtl.id = pwr.worklist_id 
+                            JOIN project_list pl ON pwr.proj_id = pl.id WHERE pl.id = '$id'");
+
+    if($qry->num_rows > 0){
+        while ($row = $qry->fetch_assoc()) {
+            $tagged[] = $row;
+        }
+    }
+        foreach($tagged as $taggedName){
+            $wlname[] = $taggedName['name'];
+        }
+        var_dump($wlname);
+} else{
+    $query = $conn->query("SELECT id workID,name FROM work_type_list");
+    if($query->num_rows > 0){
+        while ($row = $query->fetch_assoc()) {
+            $work_list[] = $row;
+        }
+    }
 }
 ?>
 <style>
@@ -29,6 +55,27 @@ if(isset($_GET['id'])){
             <label for="description" class="control-label">Description</label>
             <textarea rows="3" name="description" id="description" class="form-control form-control-sm rounded-0" required><?php echo isset($description) ? ($description) : '' ?></textarea>
         </div>
+        <div class="form-group col-md-4">
+            <label for="name" class="control-label">Work Type Name</label>
+                <select name="work_id[]" id="work_id" class="form-control form-control-sm form-control-border" multiple>
+                    <?php
+                        foreach ($work_list as $list) {
+                            $workId = $list['id'];
+                            $workName = $list['name'];
+                            if(isset($_GET['id'])){
+                            if(in_array($workName,$wlname)){
+                                echo "<option value='$workId' selected>$workName</option>";
+                            }else{
+                                echo "<option value='$workId'>$workName</option>";
+                            }
+                            }
+                            else{
+                                echo "<option value='$workId'>$workName</option>";
+                            }
+                        }
+                    ?>
+                </select>
+            </div>
     </form>
 </div>
 <script>
