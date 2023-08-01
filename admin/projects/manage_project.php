@@ -27,7 +27,6 @@ if(isset($_GET['id'])){
         foreach($tagged as $taggedName){
             $wlname[] = $taggedName['name'];
         }
-        var_dump($wlname);
 } else{
     $query = $conn->query("SELECT id workID,name FROM work_type_list");
     if($query->num_rows > 0){
@@ -55,12 +54,33 @@ if(isset($_GET['id'])){
             <label for="description" class="control-label">Description</label>
             <textarea rows="3" name="description" id="description" class="form-control form-control-sm rounded-0" required><?php echo isset($description) ? ($description) : '' ?></textarea>
         </div>
+        <div class="form-group">
+            <label for="status" class="control-label">Status</label>
+            <select name="status" id="status" class="form-control form-control-sm form-control-border">
+                    <?php
+                    $status_value = [0,1,2];
+                    if(isset($status)){
+                        foreach($status_value as $val){
+                            if($val == $status){
+                                echo "<option selected>$val</option>";
+                            }else{
+                            echo "<option>$val</option>";
+                            }   
+                        }
+                    } else{
+                        foreach($status_value as $val){
+                            echo "<option>$val</option>";
+                        }
+                    }
+                    ?></option>
+            </select>
+        </div>
         <div class="form-group col-md-4">
             <label for="name" class="control-label">Work Type Name</label>
                 <select name="work_id[]" id="work_id" class="form-control form-control-sm form-control-border" multiple>
                     <?php
                         foreach ($work_list as $list) {
-                            $workId = $list['id'];
+                            $workId = $list['workID'];
                             $workName = $list['name'];
                             if(isset($_GET['id'])){
                             if(in_array($workName,$wlname)){
@@ -75,7 +95,7 @@ if(isset($_GET['id'])){
                         }
                     ?>
                 </select>
-            </div>
+        </div>
     </form>
 </div>
 <script>

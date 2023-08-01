@@ -22,26 +22,69 @@ Class Master extends DBConnection {
 	}
 	function save_project(){
 		extract($_POST);
-		$data = "";
-		foreach($_POST as $k =>$v){
-			if(!in_array($k,array('id'))){
-				if(!is_numeric($v))
-					$v = $this->conn->real_escape_string($v);
-				if(!empty($data)) $data .=",";
-				$data .= " `{$k}`='{$v}' ";
-			}
-		}
-		if(empty($id)){
-			$sql = "INSERT INTO `project_list` set {$data} ";
-		}else{
-			$sql = "UPDATE `project_list` set {$data} where id = '{$id}' ";
-		}
 		$check = $this->conn->query("SELECT * FROM `project_list` where `name` = '{$name}' ".(is_numeric($id) && $id > 0 ? " and id != '{$id}'" : "")." ")->num_rows;
 		if($check > 0){
 			$resp['status'] = 'failed';
 			$resp['msg'] = 'Project Name already exists.';
 			
+		} else{
+		$column_name = 'work_id';
+		foreach($_POST as $column => $value){
+			if($column != $column_name){
+				$columns[] = $column;
+				$values[] = $value;
+			}
+		}
+		$column_str = implode(',',$columns);
+		$values_str = "'" . implode("', '",$values) . "'";
+		// foreach($_POST as $k =>$v){
+		// 	if(!in_array($k,array('id'))){
+		// 		if(!is_numeric($v))
+		// 			$v = $this->conn->real_escape_string($v);
+		// 		if(!empty($data)) $data .=",";
+		// 		$data .= " `{$k}`='{$v}' ";
+		// 	}
+		// }
+		if(empty($id)){
+			$sql = "INSERT INTO `project_list` ($column_str) value ($values_str) ";
+			$save = $this->conn->query($sql);
+			if(isset($_POST['work_id'])){
+				$work_id = $_POST['work_id'];
+				$project_id = $this->conn->query("SELECT id FROM project_list WHERE name = '{$_POST['name']}' ")->fetch_assoc();
+				$proj_id = $project_id['id'];
+				foreach($work_id as $id){
+					$qry = "INSERT INTO proj_worklist_rel (proj_id ,worklist_id) VALUES ('$proj_id','$id')";
+					$this->conn->query($qry);
+				}
+			}
 		}else{
+			foreach($_POST as $column => $value){
+				if($column != $column_name){
+					$sql = "UPDATE project_list set $column = '$value' where id = '$id' ";
+					$this->conn->query($sql);
+				}
+				$work_id = $_POST['work_id'];
+				$proj_id = $_POST['id'];
+				$qry = "SELECT worklist_id FROM proj_worklist_rel where proj_id = '$proj_id'";
+				$rows = $this->conn->query($qry);
+				$ids =[];
+				foreach($rows as $row){
+					$ids[] = $row['worklist_id'];
+				}
+				foreach($work_id as $val){
+				if(!in_array($val,$ids)){
+						$query = "INSERT INTO proj_worklist_rel (proj_id,worklist_id) VALUES ('$proj_id','$val') ";
+						$this->conn->query($query);
+					}
+				}
+				foreach($ids as $val){
+					if(!in_array($val,$work_id)){
+						$query = "DELETE FROM proj_worklist_rel where worklist_id = '$val'";
+						$this->conn->query($query);
+					}
+				}
+			}
+			}
 			$save = $this->conn->query($sql);
 			if($save){
 				$rid = !empty($id) ? $id : $this->conn->insert_id;
@@ -68,7 +111,7 @@ Class Master extends DBConnection {
 			$resp['status'] = 'failed';
 			$resp['mesg'] = 'Unable to delete this project because this has a report listed already.';
 		}else{
-			$del = $this->conn->query("UPDATE `project_list` set delete_flag = 1 where id = '{$id}'");
+			$del = $this->conn->query("UPDATE `project_list` set delete_flag = 1 , status = 2 where id = '{$id}'");
 			if($del){
 				$resp['status'] = 'success';
 				$this->settings->set_flashdata('success',"Project has been deleted successfully.");
